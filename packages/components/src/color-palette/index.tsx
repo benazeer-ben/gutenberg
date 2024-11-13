@@ -197,7 +197,6 @@ function UnforwardedColorPalette(
 		...additionalProps
 	} = props;
 
-	console.log(colors);
 	const themeColors = (colors[0] as PaletteObject).colors || [];
 	
 	// Group colors by the 'group' attribute
@@ -209,8 +208,6 @@ function UnforwardedColorPalette(
 		acc[group].push(color);
 		return acc;
 	}, {});
-	// console.log(groupedColors);
-
 
 	const [ normalizedColorValue, setNormalizedColorValue ] = useState( value );
 
