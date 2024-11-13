@@ -11,7 +11,8 @@ import type { HeadingSize } from '../heading/types';
 
 export type ColorObject = {
 	name: string;
-	color: NonNullable< CSSProperties[ 'color' ] >;
+	color: NonNullable<CSSProperties['color']>;
+	group?: string;
 };
 
 export type PaletteObject = {

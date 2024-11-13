@@ -7,7 +7,7 @@ import {
 	__experimentalVStack as VStack,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { privateApis as blockEditorPrivateApis } from '@wordpress/block-editor';
+import { privateApis as blockEditorPrivateApis, useSettings } from '@wordpress/block-editor';
 
 /**
  * Internal dependencies
@@ -48,6 +48,26 @@ export default function ColorPalettePanel( { name } ) {
 	);
 	const isMobileViewport = useViewportMatch( 'small', '<' );
 	const popoverProps = isMobileViewport ? mobilePopoverProps : undefined;
+	// Group settings, create a new group for each unique group name
+	const colors = useSettings('color.palette.theme')[0] || [];
+
+	// Extract unique group keys dynamically
+	const groupKeys = colors.reduce((acc, color) => {
+		if (color.group && !acc.includes(color.group)) {
+			acc.push(color.group);
+		}
+		return acc;
+	}, []);
+	const groupSettings = groupKeys.reduce((acc, groupName) => {
+		const [groupColors, setGroupColors] = useGlobalSetting(`color.palette.${groupName}`, name);
+		const [baseGroupColors] = useGlobalSetting(`color.palette.${groupName}`, name, 'base');
+		acc[groupName] = {
+			colors: groupColors || [], // Ensure groupColors has a default value
+			setColors: setGroupColors,
+			baseColors: baseGroupColors || [], // Ensure baseGroupColors has a default value
+		};
+		return acc;
+	}, {});
 
 	return (
 		<VStack
@@ -86,6 +106,22 @@ export default function ColorPalettePanel( { name } ) {
 				slugPrefix="custom-"
 				popoverProps={ popoverProps }
 			/>
+			{Object.entries(groupSettings).map(([groupName, groupSetting]) => (
+				<PaletteEdit
+					key={groupName}
+					canReset={groupSetting.colors !== groupSetting.baseColors}
+					// canOnlyChangeValues
+					colors={groupSetting.colors} // Display group colors
+					onChange={(newColors) => {
+						if (groupSetting.setColors) {
+							groupSetting.setColors(newColors); // Update group colors
+						}
+					}}
+					paletteLabel={groupName}
+					paletteLabelHeadingLevel={3}
+					popoverProps={popoverProps}
+				/>
+			))}
 			<ColorVariations title={ __( 'Palettes' ) } />
 		</VStack>
 	);

@@ -196,6 +196,22 @@ function UnforwardedColorPalette(
 		'aria-labelledby': ariaLabelledby,
 		...additionalProps
 	} = props;
+
+	console.log(colors);
+	const themeColors = (colors[0] as PaletteObject).colors || [];
+	
+	// Group colors by the 'group' attribute
+	const groupedColors = themeColors.reduce<Record<string, ColorObject[]>>((acc, color: ColorObject) => {
+		const group = color.group || 'default';
+		if (!acc[group]) {
+			acc[group] = [];
+		}
+		acc[group].push(color);
+		return acc;
+	}, {});
+	// console.log(groupedColors);
+
+
 	const [ normalizedColorValue, setNormalizedColorValue ] = useState( value );
 
 	const clearColor = useCallback( () => onChange( undefined ), [ onChange ] );
@@ -282,6 +298,7 @@ function UnforwardedColorPalette(
 		}
 	}
 
+
 	return (
 		<VStack spacing={ 3 } ref={ forwardedRef } { ...additionalProps }>
 			{ ! disableCustomColors && (
@@ -356,7 +373,32 @@ function UnforwardedColorPalette(
 						)
 					}
 				/>
-			) }
+			)}
+			{(Object.keys(groupedColors).length > 0 || actions) && (
+				<CircularOptionPicker
+					{...metaProps}
+					actions={actions}
+					options={
+						Object.keys(groupedColors).length > 1 ? (
+							<MultiplePalettes
+								{...paletteCommonProps}
+								headingLevel={headingLevel}
+								colors={Object.keys(groupedColors).map(group => ({
+									name: group,
+									colors: groupedColors[group]
+								}))}
+								value={value}
+							/>
+						) : (
+							<SinglePalette
+								{...paletteCommonProps}
+								colors={groupedColors['default'] || []}
+								value={value}
+							/>
+						)
+					}
+				/>
+			)}
 		</VStack>
 	);
 }
